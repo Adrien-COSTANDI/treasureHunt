@@ -34,4 +34,12 @@ class GameStatusParserTest {
         "src/test/resources/script.txt")));
     assertNotNull(gameStatus);
   }
+
+  @Test
+  void shouldDeclareMapFirst() {
+    var gameStatus = assertThrows(IllegalStateException.class,
+        () -> GameStatusParser.parseGameStatusFromFile(Path.of(
+            "src/test/resources/shouldDeclareMapFirst.txt")));
+    assertNotNull(gameStatus);
+  }
 }

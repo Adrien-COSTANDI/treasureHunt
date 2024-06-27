@@ -31,10 +31,8 @@ public sealed interface Parseable permits Mountain, Player, Treasure, MapSize {
     }).filter(Objects::nonNull).toList();
   }
 
-  private static Player parsePlayer(String[] tokens) {
-    var steps = Arrays.stream(tokens[5].split(""))
-        .map(Player.Step::valueOf)
-        .toList();
+  private static Parseable parsePlayer(String[] tokens) {
+    var steps = Arrays.stream(tokens[5].split("")).map(Player.Step::valueOf).toList();
 
     return new Player(tokens[1],
         new Coordinates(parseInt(tokens[2]), parseInt(tokens[3])),
@@ -42,16 +40,16 @@ public sealed interface Parseable permits Mountain, Player, Treasure, MapSize {
         steps);
   }
 
-  private static Treasure parseTreasure(String[] tokens) {
+  private static Parseable parseTreasure(String[] tokens) {
     return new Treasure(new Coordinates(parseInt(tokens[1]), parseInt(tokens[2])),
         parseInt(tokens[3]));
   }
 
-  private static Mountain parseMountain(String[] tokens) {
+  private static Parseable parseMountain(String[] tokens) {
     return new Mountain(new Coordinates(parseInt(tokens[1]), parseInt(tokens[2])));
   }
 
-  private static MapSize parseMap(String[] tokens) {
+  private static Parseable parseMap(String[] tokens) {
     return new MapSize(parseInt(tokens[1]), parseInt(tokens[2]));
   }
 

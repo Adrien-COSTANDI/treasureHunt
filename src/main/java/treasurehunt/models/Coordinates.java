@@ -12,14 +12,15 @@ public record Coordinates(int x, int y) {
   }
 
   /**
-   * This method returns true if this coordinate is between 0 and length and height excluded.
+   * This method returns true if this coordinate is between 0 and maxX and maxY excluded.
    *
-   * @param length excluded length boundary
-   * @param height excluded height boundary
+   * @param minCoordinate included minimum coordinate boundary
+   * @param maxCoordinate excluded maximum coordinate boundary
    * @return true if this coordinate is within the boundaries, false otherwise
    */
-  public boolean isWithin(int length, int height) {
-    return x >= 0 && y >= 0 && x < length && y < height;
+  public boolean isWithin(Coordinates minCoordinate, Coordinates maxCoordinate) {
+    return x >= minCoordinate.x() && y >= minCoordinate.y() && x < maxCoordinate.x() &&
+           y < maxCoordinate.y();
   }
 
   @Override

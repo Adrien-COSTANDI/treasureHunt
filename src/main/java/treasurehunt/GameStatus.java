@@ -1,13 +1,20 @@
 package treasurehunt;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import treasurehunt.gameobject.GameObject;
 import treasurehunt.gameobject.MapSize;
+import treasurehunt.gameobject.Mountain;
 import treasurehunt.gameobject.Player;
+import treasurehunt.gameobject.Result;
+import treasurehunt.gameobject.Treasure;
 import treasurehunt.models.Coordinates;
 
 public final class GameStatus {
@@ -28,15 +35,18 @@ public final class GameStatus {
     return new Builder();
   }
 
-  private boolean allow(Coordinates coordinates) {
-    if (!coordinates.isWithin(mapSize.length(), mapSize.height())) {
+  // package visibility for testing purpose
+  boolean allow(Coordinates coordinates) {
+    if (!coordinates.isWithin(new Coordinates(0, 0),
+        new Coordinates(mapSize.length(), mapSize.height()))) {
       return false;
     }
     var gameObject = map.get(coordinates);
-    return gameObject != null && gameObject.isObstacle();
+    return !(gameObject != null && gameObject.isObstacle());
   }
 
-  private Player nextPlayer() {
+  // package visibility for testing purpose
+  Player nextPlayer() {
     Player current = players.get(indexCurrentPlayer);
     indexCurrentPlayer = (indexCurrentPlayer + 1) % players.size();
     return current;
@@ -61,13 +71,34 @@ public final class GameStatus {
       }
       System.out.println("currentStep = " + currentStep.orElseThrow());
       switch (currentStep.orElseThrow()) {
-        case A -> currentPlayer.stepForward(this::allow);
+        case A -> stepForwardAndCheckAction(currentPlayer);
         case G -> currentPlayer.turnLeft();
         case D -> currentPlayer.turnRight();
       }
     }
   }
 
+  private void stepForwardAndCheckAction(Player currentPlayer) {
+    currentPlayer.stepForward(this::allow);
+    var gameObject = map.get(currentPlayer.coordinates());
+    if (gameObject == null) {
+      return;
+    }
+    switch (gameObject) {
+      case Treasure treasure -> {
+        System.out.println(currentPlayer.name() + " got a treasure !");
+        currentPlayer.pickUpTreasure(treasure);
+      }
+      case Mountain mountain -> {
+        // nothing
+      }
+      case Player player -> {
+        // nothing
+      }
+    }
+  }
+
+  // package visibility for testing purpose
   boolean noMoreSteps() {
     return players.stream().noneMatch(Player::hasNextStep);
   }
@@ -75,6 +106,18 @@ public final class GameStatus {
   @Override
   public String toString() {
     return "treasurehunt.GameStatus{" + "mapSize=" + mapSize + ", map=" + map + '}';
+  }
+
+  public void export(Path targetFile) {
+    try (var writer = Files.newBufferedWriter(targetFile)) {
+      writer.write(mapSize.toResultFormat());
+      writer.write("\n");
+      var lines =
+          map.values().stream().map(Result::toResultFormat).collect(Collectors.joining("\n"));
+      writer.write(lines);
+    } catch (IOException e) {
+      System.err.println("Error exporting result in file : " + e.getMessage());
+    }
   }
 
   public interface RequireMapSize {
@@ -104,6 +147,22 @@ public final class GameStatus {
     Builder() {
     }
 
+    private static void checkMapDoesNotContainThisCoordinate(GameObject gameObject,
+                                                             HashMap<Coordinates, GameObject> gameObjectMap) {
+      if (gameObjectMap.containsKey(gameObject.coordinates())) {
+        throw new AlreadyUsedCoordinateException(
+            "Coordinates " + gameObject.coordinates() + " is already set for : " +
+            gameObjectMap.get(gameObject.coordinates()));
+      }
+    }
+
+    private static void checkCoordinatesLegalInMap(GameObject gameObject, MapSize mapSize) {
+      if (!gameObject.coordinates()
+          .isWithin(new Coordinates(0, 0), new Coordinates(mapSize.length(), mapSize.height()))) {
+        throw new CoordinateOutOfBoundsException("coordinates must be within map size");
+      }
+    }
+
     @Override
     public RequirePlayer mapSize(MapSize mapSize) {
       Objects.requireNonNull(mapSize);
@@ -125,27 +184,6 @@ public final class GameStatus {
       return this;
     }
 
-    private static void checkMapDoesNotContainThisCoordinate(GameObject gameObject,
-                                                             HashMap<Coordinates, GameObject> gameObjectMap) {
-      if (gameObjectMap.containsKey(gameObject.coordinates())) {
-        throw new IllegalArgumentException( // TODO exception personnalisée
-            "Coordinates " + gameObject.coordinates() + " is already set for : " +
-            gameObjectMap.get(gameObject.coordinates()));
-      }
-    }
-
-    private static void checkCoordinatesLegalInMap(GameObject gameObject, MapSize mapSize) {
-      if (!gameObject.coordinates().isWithin(mapSize.length(), mapSize.height())) {
-        throw new IllegalArgumentException("coordinates must be within map size");
-      }
-    }
-
-    private void checkMapSizeNotNull() {
-      if (this.mapSize == null) {
-        throw new IllegalArgumentException("set map size first");
-      }
-    }
-
     @Override
     public MapBuilder addPlayer(Player player) {
       Objects.requireNonNull(player);
@@ -156,6 +194,12 @@ public final class GameStatus {
       gameObjectMap.put(player.coordinates(), player);
       players.add(player);
       return this;
+    }
+
+    private void checkMapSizeNotNull() {
+      if (this.mapSize == null) {
+        throw new IllegalStateException("set map size first");
+      }
     }
 
     @Override

@@ -104,27 +104,26 @@ class PlayerTest {
     var initialCoordinates = new Coordinates(10, 10);
 
     assertAll(() -> {
-          var player = new Player("TestPlayer", initialCoordinates, Orientation.N, List.of());
-          player.stepForward(coords -> true); // Legal move
-          assertEquals(new Coordinates(10, 9), player.coordinates());
-        }, () -> {
-          var player = new Player("TestPlayer", initialCoordinates, Orientation.S, List.of());
-          player.stepForward(coords -> true); // Legal move
-          assertEquals(new Coordinates(10, 11), player.coordinates());
-        }, () -> {
-          var player = new Player("TestPlayer", initialCoordinates, Orientation.E, List.of());
-          player.stepForward(coords -> true); // Legal move
-          assertEquals(new Coordinates(11, 10), player.coordinates());
-        }, () -> {
-          var player = new Player("TestPlayer", initialCoordinates, Orientation.O, List.of());
-          player.stepForward(coords -> true); // Illegal move
-          assertEquals(new Coordinates(9, 10), player.coordinates()); // Coordinates should not change
-        }, () -> {
-          var player = new Player("TestPlayer", new Coordinates(10, 10), Orientation.N, List.of());
-          player.stepForward(coords -> false); // Illegal move
-          assertEquals(new Coordinates(10, 10), player.coordinates()); // Coordinates should not change
-        }
-    );
+      var player = new Player("TestPlayer", initialCoordinates, Orientation.N, List.of());
+      player.stepForward(coords -> true); // Legal move
+      assertEquals(new Coordinates(10, 9), player.coordinates());
+    }, () -> {
+      var player = new Player("TestPlayer", initialCoordinates, Orientation.S, List.of());
+      player.stepForward(coords -> true); // Legal move
+      assertEquals(new Coordinates(10, 11), player.coordinates());
+    }, () -> {
+      var player = new Player("TestPlayer", initialCoordinates, Orientation.E, List.of());
+      player.stepForward(coords -> true); // Legal move
+      assertEquals(new Coordinates(11, 10), player.coordinates());
+    }, () -> {
+      var player = new Player("TestPlayer", initialCoordinates, Orientation.O, List.of());
+      player.stepForward(coords -> true); // Illegal move
+      assertEquals(new Coordinates(9, 10), player.coordinates()); // Coordinates should not change
+    }, () -> {
+      var player = new Player("TestPlayer", new Coordinates(10, 10), Orientation.N, List.of());
+      player.stepForward(coords -> false); // Illegal move
+      assertEquals(new Coordinates(10, 10), player.coordinates()); // Coordinates should not change
+    });
   }
 
   @Test
@@ -155,4 +154,9 @@ class PlayerTest {
     assertThrows(IllegalArgumentException.class, () -> player.pickUpTreasure(treasure));
   }
 
+  @Test
+  void testResultFormat() {
+    var player = new Player("TestPlayer", new Coordinates(1, 2), Orientation.N, List.of());
+    assertEquals("A - TestPlayer - 1 - 2 - N - 0", player.toResultFormat());
+  }
 }

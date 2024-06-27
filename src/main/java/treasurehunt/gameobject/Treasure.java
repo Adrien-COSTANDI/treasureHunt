@@ -3,7 +3,7 @@ package treasurehunt.gameobject;
 import java.util.Objects;
 import treasurehunt.models.Coordinates;
 
-public final class Treasure implements GameObject, Parseable {
+public final class Treasure implements GameObject, Parseable, Result {
 
   private final Coordinates coordinates;
   private int amount;
@@ -58,4 +58,9 @@ public final class Treasure implements GameObject, Parseable {
     return "Treasure[" + "coordinates=" + coordinates + ", " + "amount=" + amount + ']';
   }
 
+  @Override
+  public String toResultFormat() {
+    return ParseableType.T + SEPARATOR + coordinates.x() + SEPARATOR + coordinates.y() + SEPARATOR +
+           amount;
+  }
 }

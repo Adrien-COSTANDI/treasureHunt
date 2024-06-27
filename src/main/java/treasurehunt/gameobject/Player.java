@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 import treasurehunt.models.Coordinates;
 import treasurehunt.models.Orientation;
 
-public final class Player implements GameObject, Parseable {
+public final class Player implements GameObject, Parseable, Result {
 
   private final String name;
   private final List<Step> steps;
@@ -85,7 +85,7 @@ public final class Player implements GameObject, Parseable {
     if (obj == null || obj.getClass() != this.getClass()) {
       return false;
     }
-    var that = (treasurehunt.gameobject.Player) obj;
+    var that = (Player) obj;
     return Objects.equals(this.name, that.name) &&
            Objects.equals(this.coordinates, that.coordinates) &&
            Objects.equals(this.orientation, that.orientation) &&
@@ -113,6 +113,12 @@ public final class Player implements GameObject, Parseable {
     }
     treasure.pickedUp();
     treasures++;
+  }
+
+  @Override
+  public String toResultFormat() {
+    return ParseableType.A + SEPARATOR + name + SEPARATOR + coordinates.x() + SEPARATOR +
+           coordinates.y() + SEPARATOR + orientation + SEPARATOR + treasures;
   }
 
   public enum Step {
